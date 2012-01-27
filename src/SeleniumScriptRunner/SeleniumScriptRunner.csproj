@@ -78,7 +78,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SeleniumHtmlScriptParser.cs" />
     <Compile Include="SeleniumScriptTest.cs" />
+    <Compile Include="SeleniumWebDriverCommands.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

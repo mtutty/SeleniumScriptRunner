@@ -1,14 +1,18 @@
 ﻿using System;
 using NUnit.Framework;
 using System.IO;
+using OpenQA.Selenium;
 
 namespace SeleniumScriptRunner.Tests {
 
     [TestFixture]
     public class BasicScriptTests {
 
+        private IWebDriver mockDriver;
+
         [TestFixtureSetUp]
         public void SetupMethods() {
+            mockDriver = new FakeWebDriver();
         }
 
         [TestFixtureTearDown]
@@ -25,13 +29,13 @@ namespace SeleniumScriptRunner.Tests {
 
         [Test, ExpectedException(typeof(ArgumentException))]
         public void LoadNullStream() {
-            Assert.IsNotNull(SeleniumScriptTest.Load(string.Empty));
+            Assert.IsNotNull(SeleniumHtmlScriptParser.Load(string.Empty));
         }
 
         [Test]
         public void LoadBasic() {
             string content = SeleniumScriptRunner.Tests.Properties.Resources.Basic;
-            SeleniumScript target = SeleniumScriptTest.LoadContent(content);
+            SeleniumScript target = SeleniumHtmlScriptParser.LoadContent(content);
             Assert.IsNotNull(target);
             Assert.AreEqual(@"MVC-Basic", target.Title);
             Assert.AreEqual(@"http://mvc.hireahelper.com/", target.BaseURL);

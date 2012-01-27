@@ -78,16 +78,5 @@ namespace SeleniumScriptRunner.Tests.Properties {
                 return ResourceManager.GetString("Basic", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;simple attribute=&quot;value&quot;&gt;
-        ///    &lt;child&gt;text&lt;/child&gt;
-        ///&lt;/simple&gt;.
-        /// </summary>
-        public static string simple {
-            get {
-                return ResourceManager.GetString("simple", resourceCulture);
-            }
-        }
     }
 }
