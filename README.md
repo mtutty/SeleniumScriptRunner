@@ -1,0 +1,1 @@
+Allow one or more NUnit test classes to read and run test script commands from a file or embedded resource.
