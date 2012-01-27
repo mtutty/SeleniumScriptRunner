@@ -1,0 +1,6 @@
+
+src/SeleniumScriptRunner.suo
+*.suo
+bin/
+obj/
+*.user

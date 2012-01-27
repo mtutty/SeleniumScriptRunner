@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://mvc.hireahelper.com/" />
+<title>MVC-Basic</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">MVC-Basic</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTitle</td>
+	<td>Local Movers &amp; Day Labor | HireAHelper.com</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Movers</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Day Laborers</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Cleaners</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Labor-only movers<br /> Loading/unloading help provided. No truck.</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Full-service movers<br /> Labor and a truck provided.</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=stageFormInputZip</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=stageFormInputDate</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id=stageFormInputZip</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=stageFormInputZip</td>
+	<td>92056</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=stageFormInputDate</td>
+	<td>1/1/2012</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>css=a.stageFormSubmit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>css=div.searching</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>id=searchDateOfJob</td>
+	<td>1/1/2012</td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=searchCategoryID</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>id=searchZipCode</td>
+	<td>92056</td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>id=searchZipCodeCityState</td>
+	<td>OCEANSIDE, CA</td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>available in OCEANSIDE, CA on 1/1/2012</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=sortBy</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeText</td>
+	<td>css=h3</td>
+	<td>mover-name</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//div[@id='mainHelperList']/div/div/div[5]/a[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>css=div.hero.moversLaborOnly</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeTextPresent</td>
+	<td>${mover-name}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Working Hours:</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=a[title=&quot;Customer Reviews&quot;] &gt; span.meta</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Customer Reviews</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>css=div.about &gt; p</td>
+	<td>These reviews are from past customers who booked Johnny &quot;B&quot; Movers through HireAHelper. Once the job is completed, each customer has the opportunity to leave an unfiltered, uncensored rating. Service providers have an opportunity to respond to these reviews if they choose.</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id=fancybox-close</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Book This Mover</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Johnny &quot;B&quot; Movers</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>link=profile</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=PreferredStartTime</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=PianoType</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=Notes</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=Address</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=City</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>92056</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=FirstName</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=LastName</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=PhoneNum</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=PhoneNumAlt</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=Email</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=input.greenButton.greenButtonPrimary</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=errorlist</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=Notes</td>
+	<td>Job Details - this is a test entry, not a real order.</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=Address</td>
+	<td>43 Oceanside Main Road Thing</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=FirstName</td>
+	<td>Michael</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=LastName</td>
+	<td>Tutty</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=PhoneNum</td>
+	<td>515-789-0772</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=PhoneNumAlt</td>
+	<td>515-274-9505</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=Email</td>
+	<td>michael.tutty@hireahelper.com</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>css=input.greenButton.greenButtonPrimary</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Secure your reservation</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Johnny &quot;B&quot; Movers</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>link=company details</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>link=change service providers</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>link=edit your job details</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=checkoutTotal</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>43 Oceanside Main Road Thing</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Job Details - this is a test entry, not a real order</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>id=FirstName</td>
+	<td>Michael</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>id=LastName</td>
+	<td>Tutty</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>id=Email</td>
+	<td>michael.tutty@hireahelper.com</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>id=PhoneNum</td>
+	<td>(515) 789-0772</td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=Address</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=City</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=State</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=Zip</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=CreditCardInfo_CardNum</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=CreditCardInfo_CardCode</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=CreditCardInfo_ExpMonth</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=CreditCardInfo_ExpYear</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=termsHah</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>link=HireAHelper Terms of Service</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=HireAHelper Terms of Service</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>HireAHelper Terms &amp; Conditions v1.01</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>www.HIREAHELPER.com</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id=fancybox-close</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=input.greenButton.greenButtonPrimary</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>id=errorlist</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=Address</td>
+	<td>903 45th St.</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=City</td>
+	<td>Des Moines</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=State</td>
+	<td>IA</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=Zip</td>
+	<td>50312</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=CreditCardInfo_CardNum</td>
+	<td>4111111111111111</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=CreditCardInfo_CardCode</td>
+	<td>111</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=CreditCardInfo_ExpMonth</td>
+	<td>label=07 - Jul</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=CreditCardInfo_ExpYear</td>
+	<td>label=2012</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id=termsHah</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>css=input.greenButton.greenButtonPrimary</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Your Reservation is Complete</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Johnny &quot;B&quot; Movers</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=HireAHelper.com</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>
