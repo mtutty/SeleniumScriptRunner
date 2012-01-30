@@ -78,5 +78,23 @@ namespace SeleniumScriptRunner.Tests.Properties {
                 return ResourceManager.GetString("Basic", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        ///&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Strict//EN&quot; &quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd&quot;&gt;
+        ///&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xml:lang=&quot;en&quot; lang=&quot;en&quot;&gt;
+        ///&lt;head profile=&quot;http://selenium-ide.openqa.org/profiles/test-case&quot;&gt;
+        ///&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+        ///&lt;link rel=&quot;selenium.base&quot; href=&quot;http://seleniumhq.org/&quot; /&gt;
+        ///&lt;title&gt;Simple Selenium Site Check&lt;/title&gt;
+        ///&lt;/head&gt;
+        ///&lt;body&gt;
+        ///&lt;table cellpadding=&quot;1&quot; cellspacing=&quot;1&quot; bor [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string Simple_Selenium_Site_Check {
+            get {
+                return ResourceManager.GetString("Simple_Selenium_Site_Check", resourceCulture);
+            }
+        }
     }
 }

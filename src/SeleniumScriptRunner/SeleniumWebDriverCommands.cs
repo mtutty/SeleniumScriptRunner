@@ -12,6 +12,8 @@ namespace SeleniumScriptRunner {
         private string baseURL;
         private IWebDriver driver;
         private StringCollection verificationErrors;
+        private StringCollection executedElements;
+        private Exception runtimeException;
         private NameValueCollection scriptVars;
 
         #region Public usage methods
@@ -22,7 +24,9 @@ namespace SeleniumScriptRunner {
         public void RunScript(SeleniumScript script) {
             Assert.IsInstanceOf<IWebDriver>(driver, @"The WebDriver instance for this test class has not been created.  It must be created and configured by the test class during fixture setup or test setup.");
             this.verificationErrors = new StringCollection();
+            this.executedElements = new StringCollection();
             this.scriptVars = new NameValueCollection();
+            this.runtimeException = null;
             this.baseURL = script.BaseURL;
             foreach (SeleniumScriptLine line in script.Lines) {
                 this.DoCommand(line, driver);
@@ -45,23 +49,35 @@ namespace SeleniumScriptRunner {
 
         #region Selenium script commands
         [SeleniumWDCommand(@"open")]
-        public void OpenUrl(string baseURL, SeleniumScriptLine line, IWebDriver driver) {
-            driver.Navigate().GoToUrl(this.baseURL + "/");
+        public void OpenUrl(SeleniumScriptLine line, IWebDriver driver) {
+            try {
+                driver.Navigate().GoToUrl(this.baseURL + line.Target);
+            } catch (Exception ex) {
+                this.runtimeException = ex;
+                throw;
+            }
         }
 
         [SeleniumWDCommand(@"verifyTitle")]
         [SeleniumWDCommand(@"assertTitle")]
         public void checkTitle(SeleniumScriptLine line, IWebDriver driver) {
-            Assert.AreEqual(line.Target, driver.Title);
+            try {
+                Assert.AreEqual(line.Target, driver.Title);
+            } catch (Exception ex) {
+                this.runtimeException = ex;
+                throw;
+            }
         }
 
         [SeleniumWDCommand(@"verifyValue")]
         [SeleniumWDCommand(@"assertValue")]
-        public void checkValue(SeleniumScriptLine line, IWebDriver driver) {
+        [SeleniumWDCommand(@"verifyText")]
+        [SeleniumWDCommand(@"assertText")]
+        public void checkValueOrText(SeleniumScriptLine line, IWebDriver driver) {
             IWebElement elem = driver.FindElement(FindBy(line));
             Assert.IsNotNull(elem);
-            if (elem.TagName.Equals(@"input")) Assert.AreEqual(line.Value, elem.GetAttribute(@"value"));
-            Assert.AreEqual(line.Value, elem.Text);
+            string actual = elem.TagName.Equals(@"input") ? elem.GetAttribute(@"value") : elem.Text;
+            matchText(actual, expandVars(line.Value, this.scriptVars));
         }
 
         [SeleniumWDCommand(@"verifyTextPresent")]
@@ -81,8 +97,13 @@ namespace SeleniumScriptRunner {
         }
 
         [SeleniumWDCommand(@"click")]
+        [SeleniumWDCommand(@"clickAndWait")]
         public void click(SeleniumScriptLine line, IWebDriver driver) {
             driver.FindElement(FindBy(line)).Click();
+            Thread.Sleep(1000);
+
+            SeleniumScriptLine temp = new SeleniumScriptLine(@"waitForElementPresent", "css=body", string.Empty);
+            waitForElementPresence(temp, driver);
         }
 
         [SeleniumWDCommand(@"clear")]
@@ -98,7 +119,7 @@ namespace SeleniumScriptRunner {
         [SeleniumWDCommand(@"waitForElementPresent")]
         [SeleniumWDCommand(@"waitForElementNotPresent")]
         public void waitForElementPresence(SeleniumScriptLine line, IWebDriver driver) {
-            bool waitingForPresent = (line.Command.Contains(@"Not"));
+            bool waitingForPresent = (line.Command.Contains(@"Not") == false);
             for (int second = 0; ; second++) {
                 if (second >= 60) Assert.Fail("timeout");
                 try {
@@ -115,6 +136,26 @@ namespace SeleniumScriptRunner {
         #endregion
 
         #region internal utility methods - you don't care about this stuff
+        internal static void matchText(string actual, string expectedWithDiscriminant) {
+            string expected = string.Empty;
+            if (string.IsNullOrEmpty(expectedWithDiscriminant) == false) {
+                if (expectedWithDiscriminant.StartsWith(@"exact:")) {
+                    Assert.AreEqual(actual, expectedWithDiscriminant.Substring(6));
+                    return;
+                } else if (expectedWithDiscriminant.StartsWith(@"glob:")) {
+                    Assert.IsTrue(globToRegex(expectedWithDiscriminant.Substring(5)).IsMatch(actual));
+                } else if (expectedWithDiscriminant.StartsWith(@"regex:")) {
+                    Assert.IsTrue(new Regex(expectedWithDiscriminant.Substring(6)).IsMatch(actual));
+                }
+            }
+            Assert.AreEqual(actual, expected);
+        }
+        internal static Regex globToRegex(string glob) {
+            return new Regex(
+                "^" + Regex.Escape(glob).Replace(@"\*", ".*").Replace(@"\?", ".") + "$",
+                RegexOptions.IgnoreCase | RegexOptions.Singleline
+            );
+        }
         internal static string expandVars(string raw, NameValueCollection vars) {
             Regex regex = new Regex(@"\$\{(.+?)\}");
             foreach (Match m in regex.Matches(raw)) {

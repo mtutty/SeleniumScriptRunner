@@ -8,11 +8,8 @@ namespace SeleniumScriptRunner.Tests {
     [TestFixture]
     public class BasicScriptTests {
 
-        private IWebDriver mockDriver;
-
         [TestFixtureSetUp]
         public void SetupMethods() {
-            mockDriver = new FakeWebDriver();
         }
 
         [TestFixtureTearDown]

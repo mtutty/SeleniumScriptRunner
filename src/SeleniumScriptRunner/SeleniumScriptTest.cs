@@ -1,6 +1,8 @@
 ﻿using NUnit.Framework;
 using System.Collections.Generic;
 using OpenQA.Selenium;
+using System.IO;
+using System;
 
 namespace SeleniumScriptRunner {
 
@@ -17,6 +19,14 @@ namespace SeleniumScriptRunner {
 
         public SeleniumScriptTest(string filename) {
             this.Script = SeleniumHtmlScriptParser.Load(filename);
+        }
+
+        public SeleniumScriptTest(SeleniumScript script) {
+            this.Script = script;
+        }
+
+        public SeleniumScriptTest(TextReader rdr) {
+            this.Script = SeleniumHtmlScriptParser.Load(rdr);
         }
 
     }
