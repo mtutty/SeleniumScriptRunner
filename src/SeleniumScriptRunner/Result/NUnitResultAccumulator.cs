@@ -21,8 +21,10 @@ namespace SeleniumScriptRunner.Result {
 
         public NUnitResultAccumulator() : this(Assembly.GetEntryAssembly()) { }
 
-        public NUnitResultAccumulator(Assembly testAssy) {
-            this.result = CreateResult(testAssy);
+        public NUnitResultAccumulator(Assembly testAssy) : this(testAssy.CodeBase) { }
+
+        public NUnitResultAccumulator(string name) {
+            this.result = CreateResult(name);
             this.timers = new Dictionary<string, DateTime>();
         }
 
@@ -245,10 +247,10 @@ namespace SeleniumScriptRunner.Result {
 
         #region static methods
         public static NUnitResult CreateResult() {
-            return CreateResult(Assembly.GetEntryAssembly());
+            return CreateResult(Assembly.GetEntryAssembly().CodeBase);
         }
 
-        public static NUnitResult CreateResult(Assembly assy) {
+        public static NUnitResult CreateResult(string name) {
             NUnitResult ret = new NUnitResult();
 
             /*
@@ -256,7 +258,7 @@ namespace SeleniumScriptRunner.Result {
               <environment nunit-version="2.5.8.0" clr-version="2.0.50727.1433" os-version="Unix 2.6.32.25" platform="Unix" cwd="/home/charlie/Dev/NUnit/nunit-2.5/work/src/bin/Debug" machine-name="cedar" user="charlie" user-domain="cedar" />
               <culture-info current-culture="en-US" current-uiculture="en-US" />
              */
-            ret.name = Assembly.GetEntryAssembly().CodeBase;
+            ret.name = name;
             ret.total = 0;
             ret.errors = 0;
             ret.failures = 0;
