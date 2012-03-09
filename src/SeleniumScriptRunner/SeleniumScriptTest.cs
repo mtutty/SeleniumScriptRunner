@@ -18,7 +18,7 @@ namespace SeleniumScriptRunner {
         }
 
         public SeleniumScriptTest(string filename) {
-            this.Script = SeleniumHtmlScriptParser.Load(filename);
+            this.Script = SeleniumHtmlScriptParser.LoadScript(filename);
         }
 
         public SeleniumScriptTest(SeleniumScript script) {
@@ -26,7 +26,7 @@ namespace SeleniumScriptRunner {
         }
 
         public SeleniumScriptTest(TextReader rdr) {
-            this.Script = SeleniumHtmlScriptParser.Load(rdr);
+            this.Script = SeleniumHtmlScriptParser.LoadScript(rdr);
         }
 
     }

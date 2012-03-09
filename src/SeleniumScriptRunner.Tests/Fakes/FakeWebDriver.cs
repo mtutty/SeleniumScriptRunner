@@ -12,7 +12,7 @@ namespace SeleniumScriptRunner.Tests.Fakes {
         private FakeWebElement docRoot = new FakeWebElement();
 
         private string url = string.Empty;
-        private string title;
+        private string title = string.Empty;
 
         public FakeWebElement DocumentElement {
             get { return docRoot; }

@@ -19,33 +19,62 @@ namespace SeleniumScriptRunner {
 
             Result.NUnitResultAccumulator log = new Result.NUnitResultAccumulator(arguments.TestName ?? @"Selenium Script Test");
 
-            Out(@"Finding files matching {0}", arguments.ScriptFile);
-            string basePath = Path.GetDirectoryName(arguments.ScriptFile);
-            string fileMask = Path.GetFileName(arguments.ScriptFile);
-            if (string.IsNullOrEmpty(fileMask)) fileMask = @"*.*";
+            IDictionary<string, string> scriptList = SeleniumHtmlScriptParser.LoadSuite(arguments.SuiteFile);
 
             SeleniumScript script = null;
-            foreach (string file in Directory.GetFiles(basePath, fileMask)) {
+            string scriptFile = string.Empty;
+            string baseDirectory = Path.GetDirectoryName(arguments.SuiteFile);
+            string suiteName = Path.GetFileNameWithoutExtension(arguments.SuiteFile);
+
+            foreach (string scriptTitle in scriptList.Keys) {
                 try {
-                    Out(@"Opening file {0}", file);
-                    script = SeleniumHtmlScriptParser.Load(file);
+                    scriptFile = scriptList[scriptTitle];
+                    Out(@"Opening file {0}", scriptFile);
+                    script = SeleniumHtmlScriptParser.LoadScript(Path.Combine(baseDirectory, scriptFile));
                 } catch (Exception ex) {
-                    Out(@"Error loading script {0}: {1}, skipping this file", file, ex.Message);
+                    Out(@"Error loading script {0}: {1}, skipping this file", scriptFile, ex.Message);
                     continue;
                 }
 
+                IWebDriver driver = null;
                 try {
-                    Out(@"Running script file {0}", file);
+                    Out(@"Running script file {0}, title is {1}", scriptFile, script.Title);
                     for (int i = 0; i < arguments.TestCombinations.Length; i++) {
-                        //Out(@"Starting RemoteWebDriver with capabilities {0} for file {1}", arguments.TestCombinations[i], file);
-                        //IWebDriver driver = CreateDriver(arguments, i);
+                        Out(@"Starting RemoteWebDriver with capabilities {0} for {1}", arguments.TestCombinations[i], script.Title);
+                        //driver = CreateDriver(arguments, i);
+                        TestRunDescriptor desc = new TestRunDescriptor(
+                            suiteName,
+                            arguments.TestCombinations[i],
+                            scriptTitle
+                        );
+                        RunScript(desc, script, driver, log);
                     }
                 } catch (Exception ex) {
-                    Out(@"Error running script {0}: {1}", file, ex.Message);
+                    Out(@"Error running script {0}: {1}", scriptFile, ex.Message);
                     continue;
                 }
             }
-            
+
+            if (string.IsNullOrEmpty(arguments.OutputFile)) {
+                Out(log.ToXml());
+            } else {
+                Out(@"Writing results to file {0}", arguments.OutputFile);
+                log.WriteXml(arguments.OutputFile);
+            }
+        }
+
+        private void RunScript(TestRunDescriptor desc, SeleniumScript script, IWebDriver driver, Result.NUnitResultAccumulator log) {
+
+            log.Begin(desc.SuiteName, desc.FixtureName, desc.TestName);
+            foreach (SeleniumScriptLine line in script.Lines) {
+                if (driver == null) {
+                    // Debug mode, act like everything worked
+                    Out(@"Debug executing script command {0}: {1} {2}", line.Command, line.Target, line.Value);
+                    log.AssertionPassed(desc.SuiteName, desc.FixtureName, desc.TestName);
+                } else {
+                    // TODO
+                }
+            }
         }
 
         private IWebDriver CreateDriver(Arguments arguments, int index) {
@@ -59,7 +88,7 @@ namespace SeleniumScriptRunner {
             capabilities.SetCapability("accessKey", arguments.Token);
 
             var driver = new RemoteWebDriver(
-                new Uri(arguments.RemoteUrl), 
+                new Uri(arguments.RemoteUrl),
                 capabilities);
 
             return driver;
@@ -75,6 +104,19 @@ namespace SeleniumScriptRunner {
 
         protected override void Exit(Arguments arguments) {
             if (arguments.WaitForExit) WaitForExit();
+        }
+
+        public class TestRunDescriptor {
+
+            public TestRunDescriptor(string suite, string fixture, string test) {
+                this.SuiteName = suite;
+                this.FixtureName = fixture;
+                this.TestName = test;
+            }
+
+            public string SuiteName { get; set; }
+            public string FixtureName { get; set; }
+            public string TestName { get; set; }
         }
     }
 
@@ -104,8 +146,8 @@ namespace SeleniumScriptRunner {
         [Option(@"b", @"baseurl", HelpText = @"Base URL to be used for testing (i.e., your test or production site)", Required = true)]
         public string BaseUrl = null;
 
-        [Option(@"s", @"script", HelpText = @"Path and file name to the script file to be run.  May include wildcards for the file name to run multiple files.", Required = true)]
-        public string ScriptFile = null;
+        [Option(@"s", @"suite", HelpText = @"Path and file name to the Test Suite file to be run.", Required = true)]
+        public string SuiteFile = null;
 
         [Option(@"o", @"output", HelpText = @"Path and file name of the results file to be written, using NUnit XML format.  If null or empty, output is written to stdout.", Required = false)]
         public string OutputFile = null;
@@ -114,8 +156,8 @@ namespace SeleniumScriptRunner {
         public bool WaitForExit = false;
 
         public override string ToString() {
-            return string.Format(@"Remote URL = {0}, User ID = {1}, Token = {2}, Combinations = [{3}], Base URL = {4}, Script File = {5}, Output File = {6}, Wait for Exit = {7}, Build Version = {8}",
-                this.RemoteUrl, this.UserID, this.Token, string.Join(", ", this.TestCombinations), BaseUrl, ScriptFile, OutputFile, WaitForExit, BuildVersion);
+            return string.Format(@"Remote URL = {0}, User ID = {1}, Token = {2}, Combinations = [{3}], Base URL = {4}, Test Suite = {5}, Output File = {6}, Wait for Exit = {7}, Build Version = {8}",
+                this.RemoteUrl, this.UserID, this.Token, string.Join(", ", this.TestCombinations), BaseUrl, SuiteFile, OutputFile, WaitForExit, BuildVersion);
         }
     }
 }

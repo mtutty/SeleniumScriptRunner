@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="scripts\basic.html" />
+    <Content Include="scripts\suite.html" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -4,6 +4,9 @@ using System.Linq;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Collections;
+using System.Xml.Serialization;
+using System.Xml;
+using System.Text;
 
 namespace SeleniumScriptRunner.Result {
     public class NUnitResultAccumulator {
@@ -27,6 +30,24 @@ namespace SeleniumScriptRunner.Result {
             this.result = CreateResult(name);
             this.timers = new Dictionary<string, DateTime>();
         }
+
+        #region Content Export
+        public void WriteXml(string fileName) {
+            WriteXml(XmlWriter.Create(fileName));
+        }
+
+        public string ToXml() {
+            StringBuilder sb = new StringBuilder();
+            WriteXml(XmlWriter.Create(sb));
+            return sb.ToString();
+        }
+
+        private void WriteXml(XmlWriter xml) {
+            XmlSerializer ser = new XmlSerializer(typeof(NUnitResult));
+            ser.Serialize(xml, this.result);
+            xml.Close();
+        }
+        #endregion
 
         #region Public API
         public void Begin(string namespacePath, string fixtureName, string testName) {
@@ -59,11 +80,12 @@ namespace SeleniumScriptRunner.Result {
             UpdateTimings(namespacePath, fixtureName, testName);
         }
 
-        public void Ignore(string namespacePath, string fixtureName, string testName) {
+        public void Ignore(string namespacePath, string fixtureName, string testName, string reason) {
             UpdateStatuses(
                 namespacePath, fixtureName, testName,
                 FALSE, IGNORED, null
             );
+            GetTestCase(namespacePath, fixtureName, testName).Item = CreateReason(reason);
             UpdateTimings(namespacePath, fixtureName, testName);
         }
 
@@ -72,6 +94,15 @@ namespace SeleniumScriptRunner.Result {
                 namespacePath, fixtureName, testName,
                 FALSE, INCONCLUSIVE, null
             );
+            UpdateTimings(namespacePath, fixtureName, testName);
+        }
+
+        public void Exception(string namespacePath, string fixtureName, string testName, Exception ex) {
+            UpdateStatuses(
+                namespacePath, fixtureName, testName,
+                TRUE, FAILED, null
+            );
+            GetTestCase(namespacePath, fixtureName, testName).Item = CreateFailure(ex);
             UpdateTimings(namespacePath, fixtureName, testName);
         }
 
@@ -215,11 +246,11 @@ namespace SeleniumScriptRunner.Result {
                 type = type,
                 name = name,
                 results = new ResultsType() {
-                    Items = { }
+                    Items = new object[] { }
                 }
             };
             // Make sure the suite's results type is set up
-            if (container == null) container = new ResultsType() { Items = { } };
+            if (container == null) container = new ResultsType() { Items = new object[] { } };
 
             AppendToResults(container, newItem);
             return newItem;
@@ -236,7 +267,7 @@ namespace SeleniumScriptRunner.Result {
 
         public void AppendToResults(ResultsType container, object child) {
             // Make sure the suite's results type is set up
-            if (container == null) container = new ResultsType() { Items = { } };
+            if (container == null) container = new ResultsType() { Items = new object[] { } };
 
             // Append new child
             List<object> results = new List<object>(container.Items);
@@ -246,6 +277,22 @@ namespace SeleniumScriptRunner.Result {
         #endregion
 
         #region static methods
+        public static FailureType CreateFailure(Exception ex) {
+            return CreateFailure(ex.Message, ex.StackTrace);
+        }
+        public static FailureType CreateFailure(string message, string stackTrace) {
+            return new FailureType() {
+                message = message,
+                stacktrace = stackTrace
+            };
+        }
+
+        public static ReasonType CreateReason(string message) {
+            return new ReasonType() {
+                message = message
+            };
+        }
+
         public static NUnitResult CreateResult() {
             return CreateResult(Assembly.GetEntryAssembly().CodeBase);
         }
@@ -273,6 +320,12 @@ namespace SeleniumScriptRunner.Result {
             ret.cultureinfo = new CultureinfoType() {
                 currentculture = CultureInfo.CurrentCulture.NativeName,
                 currentuiculture = CultureInfo.CurrentUICulture.NativeName
+            };
+
+            ret.testsuite = new TestSuiteType() {
+                name = name,
+                type = "Suite",
+                results = new ResultsType() { Items = new object[] {} }
             };
 
             return ret;

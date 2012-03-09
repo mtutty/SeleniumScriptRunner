@@ -1,19 +1,40 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using HtmlAgilityPack;
 
 namespace SeleniumScriptRunner {
     public class SeleniumHtmlScriptParser {
         private SeleniumHtmlScriptParser() { /* Not creatable */ }
 
-        public static SeleniumScript Load(string filename) {
-            return Load(File.OpenText(filename));
+        public static IDictionary<string, string> LoadSuite(string filename) {
+            return LoadSuite(File.OpenText(filename));
         }
 
-        public static SeleniumScript Load(TextReader rdr) {
-            return LoadContent(rdr.ReadToEnd());
+        public static IDictionary<string, string> LoadSuite(TextReader rdr) {
+            return LoadSuiteContent(rdr.ReadToEnd());
         }
 
-        public static SeleniumScript LoadContent(string content) {
+        public static IDictionary<string, string> LoadSuiteContent(string content) {
+
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(content);
+
+            var ret = new Dictionary<string, string>();
+            foreach (HtmlNode linkNode in doc.DocumentNode.SelectNodes(@"//table[@class='selenium']//a")) {
+                ret.Add(linkNode.InnerText, linkNode.GetAttributeValue(@"href", string.Empty));
+            }
+            return ret;
+        }
+
+        public static SeleniumScript LoadScript(string filename) {
+            return LoadScript(File.OpenText(filename));
+        }
+
+        public static SeleniumScript LoadScript(TextReader rdr) {
+            return LoadScriptContent(rdr.ReadToEnd());
+        }
+
+        public static SeleniumScript LoadScriptContent(string content) {
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(content);

@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System.IO;
 using OpenQA.Selenium;
+using System.Collections.Generic;
 
 namespace SeleniumScriptRunner.Tests {
 
@@ -25,14 +26,28 @@ namespace SeleniumScriptRunner.Tests {
         }
 
         [Test, ExpectedException(typeof(ArgumentException))]
-        public void LoadNullStream() {
-            Assert.IsNotNull(SeleniumHtmlScriptParser.Load(string.Empty));
+        public void LoadNullScriptStream() {
+            Assert.IsNotNull(SeleniumHtmlScriptParser.LoadScript(string.Empty));
+        }
+
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void LoadNullSuiteStream() {
+            Assert.IsNotNull(SeleniumHtmlScriptParser.LoadSuite(string.Empty));
+        }
+
+        [Test]
+        public void LoadSuite() {
+            IDictionary<string, string> actual = SeleniumHtmlScriptParser.LoadSuiteContent(SeleniumScriptRunner.Tests.Properties.Resources.suite);
+            Assert.IsNotNull(actual);
+            for (int i = 1; i < 6; i++) {
+                Assert.AreEqual(string.Format(@"Script_{0}.html", i), actual[string.Format(@"Script #{0}", i)]);
+            }
         }
 
         [Test]
         public void LoadBasic() {
             string content = SeleniumScriptRunner.Tests.Properties.Resources.Basic;
-            SeleniumScript target = SeleniumHtmlScriptParser.LoadContent(content);
+            SeleniumScript target = SeleniumHtmlScriptParser.LoadScriptContent(content);
             Assert.IsNotNull(target);
             Assert.AreEqual(@"MVC-Basic", target.Title);
             Assert.AreEqual(@"http://mvc.hireahelper.com/", target.BaseURL);
