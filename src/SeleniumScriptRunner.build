@@ -28,7 +28,7 @@
 
   <target name="clean.package" description="Delete files from the packaging destination">
     <delete>
-      <fileset basedir="${dist.dir}">
+      <fileset basedir="${dist.dir}/${configuration}">
         <include name="**" />
       </fileset>
     </delete>
