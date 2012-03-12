@@ -7,18 +7,29 @@ using System.Collections.Specialized;
 using System.Threading;
 using System.Text.RegularExpressions;
 
-namespace SeleniumScriptRunner {
+using SeleniumScriptRunner.Result;
+
+namespace SeleniumScriptRunner.Script {
     public class SeleniumWebDriverCommands {
+
+        public delegate void OnAssertion();
+
         private string baseURL;
-        private IWebDriver driver;
+        private IWebDriver driver = null;
+        private TestRunDescriptor desc = null;
+        private NUnitResultAccumulator log = null;
         private StringCollection verificationErrors;
         private StringCollection executedElements;
         private Exception runtimeException;
         private NameValueCollection scriptVars;
 
         #region Public usage methods
-        public SeleniumWebDriverCommands(IWebDriver driver) {
+        public SeleniumWebDriverCommands(IWebDriver driver, TestRunDescriptor desc) : this(driver, desc, null) { }
+
+        public SeleniumWebDriverCommands(IWebDriver driver, TestRunDescriptor desc, Result.NUnitResultAccumulator log) {
             this.driver = driver;
+            this.desc = desc;
+            this.log = log;
         }
 
         public void RunScript(SeleniumScript script) {
@@ -38,10 +49,42 @@ namespace SeleniumScriptRunner {
             if (Commands.ContainsKey(key) == false) throw new NotSupportedException(string.Format(@"Selenium command '{0}' is not supported by this script runner", key));
             try {
                 Commands[key].Invoke(this, new object[] { line, driver });
-            } catch (AssertionException e) {
-                if (isAssertion(line)) throw;
-                verificationErrors.Add(e.Message);
+                if (this.log != null && isAssertion(line)) {
+                    this.log.AssertionPassed(desc.SuiteName, desc.FixtureName, desc.TestName);
+                }
+            } catch (Exception ex) {
+                if (ex.GetType().Equals(typeof(AssertionException))) {
+                    if (FailAssertion(desc, line, ex)) throw;
+                    verificationErrors.Add(ex.Message);
+                } else if (ex.GetType().Equals(typeof(NoSuchElementException))) {
+                    if (FailAssertion(desc, line, ex)) throw;
+                    verificationErrors.Add(ex.Message);
+                } else if (ex.InnerException != null && 
+                           ex.InnerException.GetType().Equals(typeof(AssertionException))) {
+                    if (FailAssertion(desc, line, ex.InnerException)) throw;
+                    verificationErrors.Add(ex.InnerException.Message);
+                } else if (ex.InnerException != null &&
+                           ex.InnerException.GetType().Equals(typeof(NoSuchElementException))) {
+                    if (FailAssertion(desc, line, ex.InnerException)) throw;
+                    verificationErrors.Add(ex.InnerException.Message);
+                } else {
+                    if (this.log != null) {
+                        this.log.Exception(desc.SuiteName, desc.FixtureName, desc.TestName, ex);
+                    }
+                    throw;
+                }
             }
+        }
+
+        private bool FailAssertion(TestRunDescriptor desc, SeleniumScriptLine line, Exception ex) {
+            if (isAssertion(line)) {
+                if (this.log != null) {
+                    string location = string.Join(@", ", line.Command, line.Target, line.Value);
+                    this.log.AssertionFailed(desc.SuiteName, desc.FixtureName, desc.TestName, ex.Message, location);
+                }
+                return true;
+            }
+            return false;
         }
 
         public StringCollection VerificationErrors { get { return this.verificationErrors; } }
@@ -75,7 +118,6 @@ namespace SeleniumScriptRunner {
         [SeleniumWDCommand(@"assertText")]
         public void checkValueOrText(SeleniumScriptLine line, IWebDriver driver) {
             IWebElement elem = driver.FindElement(FindBy(line));
-            Assert.IsNotNull(elem);
             string actual = elem.TagName.Equals(@"input") ? elem.GetAttribute(@"value") : elem.Text;
             matchText(actual, expandVars(line.Value, this.scriptVars));
         }
@@ -87,13 +129,13 @@ namespace SeleniumScriptRunner {
             string textToFind = line.Target;
             if (line.Command.StartsWith(@"store")) textToFind = expandVars(line.Target, this.scriptVars);
             string xpath = string.Format(@"//*[contains(text(),'{0}')]", textToFind);
-            Assert.IsNotNull(driver.FindElement(By.XPath(xpath)));
+            driver.FindElement(By.XPath(xpath));
         }
 
         [SeleniumWDCommand(@"verifyElementPresent")]
         [SeleniumWDCommand(@"assertElementPresent")]
         public void checkElementPresent(SeleniumScriptLine line, IWebDriver driver) {
-            Assert.IsNotNull(driver.FindElement(FindBy(line)));
+            driver.FindElement(FindBy(line));
         }
 
         [SeleniumWDCommand(@"click")]

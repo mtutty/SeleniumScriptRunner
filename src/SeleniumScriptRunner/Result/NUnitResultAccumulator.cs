@@ -57,13 +57,7 @@ namespace SeleniumScriptRunner.Result {
         public void AssertionPassed(string namespacePath, string fixtureName, string testName) {
             TestCaseType tc = GetTestCase(namespacePath, fixtureName, testName);
 
-            int oldCount = 0;
-            if (int.TryParse(tc.asserts, out oldCount) == false) {
-                tc.asserts = @"1";
-            } else {
-                oldCount++;
-                tc.asserts = oldCount.ToString();
-            }
+            tc.asserts = IncrementCounter(tc.asserts);
 
             UpdateStatuses(
                 namespacePath, fixtureName, testName,
@@ -72,7 +66,9 @@ namespace SeleniumScriptRunner.Result {
             UpdateTimings(namespacePath, fixtureName, testName);
         }
 
-        public void AssertionFailed(string namespacePath, string fixtureName, string testName) {
+        public void AssertionFailed(string namespacePath, string fixtureName, string testName, string message, string location) {
+            this.result.failures = IncrementCounter(this.result.failures);
+            GetTestCase(namespacePath, fixtureName, testName).Item = CreateFailure(message, location);
             UpdateStatuses(
                 namespacePath, fixtureName, testName,
                 TRUE, FAILED, FALSE
@@ -81,6 +77,7 @@ namespace SeleniumScriptRunner.Result {
         }
 
         public void Ignore(string namespacePath, string fixtureName, string testName, string reason) {
+            this.result.ignored = IncrementCounter(this.result.ignored);
             UpdateStatuses(
                 namespacePath, fixtureName, testName,
                 FALSE, IGNORED, null
@@ -90,6 +87,7 @@ namespace SeleniumScriptRunner.Result {
         }
 
         public void Inconclusive(string namespacePath, string fixtureName, string testName) {
+            this.result.inconclusive = IncrementCounter(this.result.inconclusive);
             UpdateStatuses(
                 namespacePath, fixtureName, testName,
                 FALSE, INCONCLUSIVE, null
@@ -98,6 +96,7 @@ namespace SeleniumScriptRunner.Result {
         }
 
         public void Exception(string namespacePath, string fixtureName, string testName, Exception ex) {
+            this.result.errors = IncrementCounter(this.result.errors);
             UpdateStatuses(
                 namespacePath, fixtureName, testName,
                 TRUE, FAILED, null
@@ -111,6 +110,7 @@ namespace SeleniumScriptRunner.Result {
         }
 
         public void Invalid(string namespacePath, string fixtureName, string testName) {
+            this.result.invalid = IncrementCounter(this.result.invalid);
             UpdateStatuses(
                 namespacePath, fixtureName, testName,
                 FALSE, INVALID, FALSE
@@ -196,6 +196,20 @@ namespace SeleniumScriptRunner.Result {
                 }
             }
         }
+
+        internal string IncrementCounter(string currentValue) {
+            int oldCount = 0;
+            if (int.TryParse(currentValue, out oldCount) == false) {
+                return @"1";
+            } else {
+                oldCount++;
+                return oldCount.ToString();
+            }
+        }
+
+        internal decimal IncrementCounter(decimal currentValue) {
+            return currentValue + 1;
+        }
         #endregion
 
         #region Hierarchy Navigation / Factory methods
@@ -206,7 +220,8 @@ namespace SeleniumScriptRunner.Result {
                 if (candidate.name.Equals(testName, StringComparison.CurrentCultureIgnoreCase)) return candidate;
             }
 
-            return AppendTestCase(fixture.results, string.Join(@".", namespacePath, fixtureName, testName));
+            this.result.total = IncrementCounter(this.result.total);
+            return AppendTestCase(fixture.results, testName);
         }
 
         public TestSuiteType GetFixture(string namespacePath, string fixtureName) {

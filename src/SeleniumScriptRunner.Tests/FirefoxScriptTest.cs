@@ -4,9 +4,12 @@ using System.IO;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
 
+using SeleniumScriptRunner.Script;
+
 namespace SeleniumScriptRunner.Tests {
 
     [TestFixture(Category=@"Integration")]
+    [Ignore(@"This test requires the Firefox driver.  Should only be used for integration testing.")]
     public class FirefoxScriptTest : SeleniumScriptTest {
 
         public FirefoxScriptTest()

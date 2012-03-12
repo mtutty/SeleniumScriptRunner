@@ -76,17 +76,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineProgram.cs" />
+    <Compile Include="Driver\WebDriverFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Result\NUnitResultAccumulator.cs" />
-    <Compile Include="SeleniumHtmlScriptParser.cs" />
-    <Compile Include="SeleniumScriptTest.cs" />
-    <Compile Include="SeleniumWebDriverCommands.cs" />
+    <Compile Include="Script\SeleniumHtmlScriptParser.cs" />
+    <Compile Include="Script\SeleniumScriptTest.cs" />
+    <Compile Include="Script\SeleniumWebDriverCommands.cs" />
     <Compile Include="Result\NUnitResult.cs" />
+    <Compile Include="Script\TestRunDescriptor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

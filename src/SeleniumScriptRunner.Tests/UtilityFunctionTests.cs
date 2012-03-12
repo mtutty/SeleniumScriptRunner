@@ -2,6 +2,8 @@
 using NUnit.Framework;
 using System.Collections.Specialized;
 
+using SeleniumScriptRunner.Script;
+
 namespace SeleniumScriptRunner.Tests {
 
     [TestFixture]

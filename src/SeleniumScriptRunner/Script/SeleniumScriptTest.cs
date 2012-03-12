@@ -4,7 +4,7 @@ using OpenQA.Selenium;
 using System.IO;
 using System;
 
-namespace SeleniumScriptRunner {
+namespace SeleniumScriptRunner.Script {
 
     public abstract class SeleniumScriptTest {
 
@@ -13,7 +13,8 @@ namespace SeleniumScriptRunner {
 
         [Test()]
         public void RunScriptTest() {
-            SeleniumWebDriverCommands runner = new SeleniumWebDriverCommands(this.driver);
+            TestRunDescriptor desc = new TestRunDescriptor(@"TestSuiteName", @"TestFixtureName", @"TestTestName");
+            SeleniumWebDriverCommands runner = new SeleniumWebDriverCommands(this.driver, desc);
             runner.RunScript(this.Script);
         }
 

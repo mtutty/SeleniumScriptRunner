@@ -2,7 +2,7 @@
 using System.IO;
 using HtmlAgilityPack;
 
-namespace SeleniumScriptRunner {
+namespace SeleniumScriptRunner.Script {
     public class SeleniumHtmlScriptParser {
         private SeleniumHtmlScriptParser() { /* Not creatable */ }
 

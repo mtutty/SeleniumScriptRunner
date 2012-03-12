@@ -8,6 +8,10 @@ using ConsoleApplication;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Remote;
 
+using SeleniumScriptRunner.Driver;
+using SeleniumScriptRunner.Result;
+using SeleniumScriptRunner.Script;
+
 namespace SeleniumScriptRunner {
     public class Program : CommandLineProgram<Program, Arguments> {
         static void Main(string[] args) {
@@ -17,7 +21,7 @@ namespace SeleniumScriptRunner {
         protected override void Run(Arguments arguments) {
             Out(arguments.ToString());
 
-            Result.NUnitResultAccumulator log = new Result.NUnitResultAccumulator(arguments.TestName ?? @"Selenium Script Test");
+            NUnitResultAccumulator log = new NUnitResultAccumulator(arguments.TestName ?? @"Selenium Script Test");
 
             IDictionary<string, string> scriptList = SeleniumHtmlScriptParser.LoadSuite(arguments.SuiteFile);
 
@@ -31,6 +35,7 @@ namespace SeleniumScriptRunner {
                     scriptFile = scriptList[scriptTitle];
                     Out(@"Opening file {0}", scriptFile);
                     script = SeleniumHtmlScriptParser.LoadScript(Path.Combine(baseDirectory, scriptFile));
+                    script.BaseURL = string.IsNullOrEmpty(arguments.BaseUrl) ?  script.BaseURL : arguments.BaseUrl;
                 } catch (Exception ex) {
                     Out(@"Error loading script {0}: {1}, skipping this file", scriptFile, ex.Message);
                     continue;
@@ -41,12 +46,12 @@ namespace SeleniumScriptRunner {
                     Out(@"Running script file {0}, title is {1}", scriptFile, script.Title);
                     for (int i = 0; i < arguments.TestCombinations.Length; i++) {
                         Out(@"Starting RemoteWebDriver with capabilities {0} for {1}", arguments.TestCombinations[i], script.Title);
-                        //driver = CreateDriver(arguments, i);
                         TestRunDescriptor desc = new TestRunDescriptor(
                             suiteName,
                             arguments.TestCombinations[i],
                             scriptTitle
                         );
+                        driver = CreateDriver(arguments, desc, i);
                         RunScript(desc, script, driver, log);
                     }
                 } catch (Exception ex) {
@@ -63,39 +68,27 @@ namespace SeleniumScriptRunner {
             }
         }
 
-        private void RunScript(TestRunDescriptor desc, SeleniumScript script, IWebDriver driver, Result.NUnitResultAccumulator log) {
+        private void RunScript(TestRunDescriptor desc, SeleniumScript script, IWebDriver driver, NUnitResultAccumulator log) {
 
             log.Begin(desc.SuiteName, desc.FixtureName, desc.TestName);
-            foreach (SeleniumScriptLine line in script.Lines) {
-                if (driver == null) {
+            if (driver == null) {
+                foreach (SeleniumScriptLine line in script.Lines) {
                     // Debug mode, act like everything worked
                     Out(@"Debug executing script command {0}: {1} {2}", line.Command, line.Target, line.Value);
                     log.AssertionPassed(desc.SuiteName, desc.FixtureName, desc.TestName);
-                } else {
-                    // TODO
                 }
+            } else {
+                SeleniumWebDriverCommands runner = new SeleniumWebDriverCommands(driver, desc, log);
+                runner.RunScript(script);
             }
         }
 
-        private IWebDriver CreateDriver(Arguments arguments, int index) {
-
-            string[] pieces = arguments.TestCombinations[index].Split(';');
-            if (pieces.Length != 3) throw new ArgumentException(@"TestCombination");
-            DesiredCapabilities capabilities = new DesiredCapabilities(pieces[0], pieces[1], GetPlatform(pieces[2]));
-            capabilities.SetCapability("name", arguments.TestName);
-            capabilities.SetCapability("build", arguments.BuildVersion);
-            capabilities.SetCapability("username", arguments.UserID);
-            capabilities.SetCapability("accessKey", arguments.Token);
-
-            var driver = new RemoteWebDriver(
-                new Uri(arguments.RemoteUrl),
-                capabilities);
-
-            return driver;
-        }
-
-        private Platform GetPlatform(string p) {
-            return new Platform((PlatformType)Enum.Parse(typeof(PlatformType), p, true));
+        private IWebDriver CreateDriver(Arguments arguments, TestRunDescriptor desc, int index) {
+            return WebDriverFactory.CreateRemoteDriver(
+                arguments.RemoteUrl,
+                arguments.TestCombinations[index],
+                WebDriverFactory.SauceLabsCapabilities(desc.TestName, arguments.BuildVersion, arguments.UserID, arguments.Token)
+            );
         }
 
         protected override void Validate(Arguments arguments) {
@@ -104,19 +97,6 @@ namespace SeleniumScriptRunner {
 
         protected override void Exit(Arguments arguments) {
             if (arguments.WaitForExit) WaitForExit();
-        }
-
-        public class TestRunDescriptor {
-
-            public TestRunDescriptor(string suite, string fixture, string test) {
-                this.SuiteName = suite;
-                this.FixtureName = fixture;
-                this.TestName = test;
-            }
-
-            public string SuiteName { get; set; }
-            public string FixtureName { get; set; }
-            public string TestName { get; set; }
         }
     }
 

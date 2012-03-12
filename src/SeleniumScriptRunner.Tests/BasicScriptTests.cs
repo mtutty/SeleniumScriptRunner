@@ -4,6 +4,8 @@ using System.IO;
 using OpenQA.Selenium;
 using System.Collections.Generic;
 
+using SeleniumScriptRunner.Script;
+
 namespace SeleniumScriptRunner.Tests {
 
     [TestFixture]
