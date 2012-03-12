@@ -57,6 +57,8 @@ namespace SeleniumScriptRunner {
                 } catch (Exception ex) {
                     Out(@"Error running script {0}: {1}", scriptFile, ex.Message);
                     continue;
+                } finally {
+                    if (driver != null) driver.Quit();
                 }
             }
 
@@ -78,8 +80,18 @@ namespace SeleniumScriptRunner {
                     log.AssertionPassed(desc.SuiteName, desc.FixtureName, desc.TestName);
                 }
             } else {
+                if (driver as WebDriverFactory.WebDriver != null)  {
+                    AddSauceCustomProperties(desc, script, driver as WebDriverFactory.WebDriver, log);
+                }
                 SeleniumWebDriverCommands runner = new SeleniumWebDriverCommands(driver, desc, log);
                 runner.RunScript(script);
+            }
+        }
+
+        private void AddSauceCustomProperties(TestRunDescriptor desc, SeleniumScript script, WebDriverFactory.WebDriver webDriver, NUnitResultAccumulator log) {
+            if (webDriver != null) {
+                log.AddProperty(desc.SuiteName, desc.FixtureName, desc.TestName, @"SessionId", webDriver.SessionId);
+                log.AddProperty(desc.SuiteName, desc.FixtureName, desc.TestName, @"Link", string.Format(@"http://saucelabs.com/jobs/{0}", webDriver.SessionId));
             }
         }
 

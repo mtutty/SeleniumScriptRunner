@@ -52,7 +52,7 @@ namespace SeleniumScriptRunner.Driver {
         /// <param name="platform">Name of the O/S to be used for testing.  See SeleniumHQ.org for more information</param>
         /// <param name="customCapabilities">Additional name/value pairs to be sent to the remote provider</param>
         /// <returns>A RemoteWebDriver, initialized and connected to the provider according to the parameter values</returns>
-        public static IWebDriver CreateRemoteDriver(string remoteUrl, string browser, string version, string platform, NameValueCollection customCapabilities) {
+        public static WebDriverFactory.WebDriver CreateRemoteDriver(string remoteUrl, string browser, string version, string platform, NameValueCollection customCapabilities) {
             DesiredCapabilities capabilities = new DesiredCapabilities(browser, version, GetPlatform(platform));
             if (customCapabilities != null && customCapabilities.Count > 0) {
                 foreach (string key in customCapabilities.Keys) {
@@ -60,7 +60,7 @@ namespace SeleniumScriptRunner.Driver {
                 }
             }
 
-            var driver = new RemoteWebDriver(
+            var driver = new WebDriverFactory.WebDriver(
                 new Uri(remoteUrl),
                 capabilities);
 
@@ -76,5 +76,15 @@ namespace SeleniumScriptRunner.Driver {
             return new Platform((PlatformType)Enum.Parse(typeof(PlatformType), p, true));
         }
 
+        // See http://support.saucelabs.com/entries/20641668-not-able-to-get-sessionid-for-net-bindings
+        public class WebDriver : RemoteWebDriver {
+            public WebDriver(Uri uri, DesiredCapabilities capabilities) : base (uri, capabilities) {}
+
+            public new string SessionId {
+                get {
+                    return base.SessionId.ToString();
+                }
+            }
+        }
     }
 }

@@ -50,6 +50,20 @@ namespace SeleniumScriptRunner.Result {
         #endregion
 
         #region Public API
+        public void AddProperty(string namespacePath, string fixtureName, string testName, string name, string value) {
+            TestCaseType c = GetTestCase(namespacePath, fixtureName, testName);
+            if (c != null) {
+                if (c.properties == null) c.properties = new PropertyType[] { };
+                IList<PropertyType> props = c.properties.ToList();
+                PropertyType newItem = new PropertyType() {
+                    name = name,
+                    value = value
+                };
+                props.Add(newItem);
+                c.properties = props.ToArray();
+            }
+        }
+
         public void Begin(string namespacePath, string fixtureName, string testName) {
             this.timers.Add(FullName(namespacePath, fixtureName, testName), DateTime.Now);
         }
