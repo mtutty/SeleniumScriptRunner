@@ -5,6 +5,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeleniumScriptRunner", "Sel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeleniumScriptRunner.Tests", "SeleniumScriptRunner.Tests\SeleniumScriptRunner.Tests.csproj", "{B3480F92-D7FC-4DBA-B4CE-DF6795B2D6E2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F9F72655-8745-42D4-BE2A-C6176AB1BEDA}"
+	ProjectSection(SolutionItems) = preProject
+		SeleniumScriptRunner.build = SeleniumScriptRunner.build
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

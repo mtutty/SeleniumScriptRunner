@@ -41,7 +41,7 @@
       <HintPath>packages\Castle.Core.2.5.2\lib\NET35\Castle.Core.dll</HintPath>
     </Reference>
     <Reference Include="CommandLine">
-      <HintPath>..\lib\CommandLine\CommandLine.dll</HintPath>
+      <HintPath>..\..\lib\CommandLine\CommandLine.dll</HintPath>
     </Reference>
     <Reference Include="HtmlAgilityPack">
       <HintPath>..\packages\HtmlAgilityPack.1.4.3\lib\HtmlAgilityPack.dll</HintPath>

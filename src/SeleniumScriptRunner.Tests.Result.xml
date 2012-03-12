@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!--This file represents the results of running a test suite-->
+<test-results name="C:\Users\Michael\Documents\Projects\SeleniumScriptRunner\src\SeleniumScriptRunner.Tests\bin\Debug\SeleniumScriptRunner.Tests.dll" total="8" errors="0" failures="0" not-run="1" inconclusive="0" ignored="1" skipped="0" invalid="0" date="2012-03-12" time="14:44:43">
+  <environment nunit-version="2.6.0.12051" clr-version="2.0.50727.5448" os-version="Microsoft Windows NT 6.1.7601 Service Pack 1" platform="Win32NT" cwd="C:\Users\Michael\Documents\Projects\SeleniumScriptRunner\src" machine-name="MICHAEL-VM-7" user="Michael" user-domain="Michael-VM-7" />
+  <culture-info current-culture="en-US" current-uiculture="en-US" />
+  <test-suite type="Assembly" name="C:\Users\Michael\Documents\Projects\SeleniumScriptRunner\src\SeleniumScriptRunner.Tests\bin\Debug\SeleniumScriptRunner.Tests.dll" executed="True" result="Success" success="True" time="0.591" asserts="0">
+    <results>
+      <test-suite type="Namespace" name="SeleniumScriptRunner" executed="True" result="Success" success="True" time="0.571" asserts="0">
+        <results>
+          <test-suite type="Namespace" name="Tests" executed="True" result="Success" success="True" time="0.561" asserts="0">
+            <results>
+              <test-suite type="TestFixture" name="BasicScriptTests" executed="True" result="Success" success="True" time="0.361" asserts="0">
+                <results>
+                  <test-case name="SeleniumScriptRunner.Tests.BasicScriptTests.LoadBasic" executed="True" result="Success" success="True" time="0.310" asserts="19" />
+                  <test-case name="SeleniumScriptRunner.Tests.BasicScriptTests.LoadNullScriptStream" executed="True" result="Success" success="True" time="0.010" asserts="0" />
+                  <test-case name="SeleniumScriptRunner.Tests.BasicScriptTests.LoadNullSuiteStream" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                  <test-case name="SeleniumScriptRunner.Tests.BasicScriptTests.LoadSuite" executed="True" result="Success" success="True" time="0.010" asserts="6" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="FirefoxScriptTest" executed="False" result="Ignored">
+                <categories>
+                  <category name="Integration" />
+                </categories>
+                <reason>
+                  <message><![CDATA[This test requires the Firefox driver.  Should only be used for integration testing.]]></message>
+                </reason>
+                <results>
+                  <test-case name="SeleniumScriptRunner.Tests.FirefoxScriptTest.SeleniumScriptTest.RunScriptTest" executed="False" result="Ignored">
+                    <reason>
+                      <message><![CDATA[This test requires the Firefox driver.  Should only be used for integration testing.]]></message>
+                    </reason>
+                  </test-case>
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="UtilityFunctionTests" executed="True" result="Success" success="True" time="0.190" asserts="0">
+                <results>
+                  <test-suite type="ParameterizedTest" name="ExpandVarsTest" executed="True" result="Success" success="True" time="0.190" asserts="0">
+                    <results>
+                      <test-case name="SeleniumScriptRunner.Tests.UtilityFunctionTests.ExpandVarsTest(&quot;b&quot;,&quot;b&quot;)" executed="True" result="Success" success="True" time="0.140" asserts="1" />
+                      <test-case name="SeleniumScriptRunner.Tests.UtilityFunctionTests.ExpandVarsTest(&quot;${a}&quot;,&quot;letter a&quot;)" executed="True" result="Success" success="True" time="0.040" asserts="1" />
+                      <test-case name="SeleniumScriptRunner.Tests.UtilityFunctionTests.ExpandVarsTest(&quot;${a} and b&quot;,&quot;letter a and b&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
+                      <test-case name="SeleniumScriptRunner.Tests.UtilityFunctionTests.ExpandVarsTest(&quot;${whoa-a-dash} and b&quot;,&quot;Dashes! and b&quot;)" executed="True" result="Success" success="True" time="0.010" asserts="1" />
+                    </results>
+                  </test-suite>
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+    </results>
+  </test-suite>
+</test-results>

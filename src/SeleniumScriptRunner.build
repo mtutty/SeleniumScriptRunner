@@ -1,0 +1,78 @@
+<project name="SeleniumScriptRunner" default="rebuild" xmlns="http://nant.sf.net/release/0.91/nant.xsd" >
+  <property name="configuration" overwrite="false" value="Release"/>
+  <property name="base.dir" value="${directory::get-parent-directory(directory::get-parent-directory(project::get-buildfile-path()))}" />
+  <property name="src.dir" value="${base.dir}/src" />
+  <property name="dist.dir" overwrite="false" value="${base.dir}/dist" />
+  <property name="test.project" value="${project::get-name()}.Tests" />
+
+  <property name="target.framework" value="${framework::get-target-framework()}" />
+  <property name="target.framework.dir" value="${framework::get-framework-directory(target.framework)}" />
+
+  <target name="rebuild" depends="clean, build" />
+  
+  <target name="clean" description="Delete all previously compiled binaries.">
+    <call target="clean.code" />
+    <call target="clean.package" />
+  </target>
+
+  <target name="clean.code" description="Delete files within the source tree.">
+    <delete>
+      <fileset basedir="${src.dir}">
+        <exclude name=".git/**" />
+        <include name="*Result.xml" />
+        <include name="Hireahelper.*/**/bin/**" />
+        <include name="Hireahelper.*/**/obj/**" />
+      </fileset>
+    </delete>
+  </target>
+
+  <target name="clean.package" description="Delete files from the packaging destination">
+    <delete>
+      <fileset basedir="${dist.dir}">
+        <include name="**" />
+      </fileset>
+    </delete>
+  </target>
+
+  <target name="build" description="Build all targets.">
+    <call target="build.solution"/>
+    <call target="test"/>
+    <call target="package" />
+  </target>
+
+  <target name="build.solution">
+    <msbuild project="${src.dir}/SeleniumScriptRunner.sln">
+      <arg value="/property:Configuration=${configuration}" />
+      <!-- Verbosity: Minimal (options are Quiet, Minimal, Normal, Detailed and Diagnostic) -->
+      <arg value="/v:normal" />
+      <arg value="/t:Build" />
+    </msbuild>
+  </target>
+  
+  <target name="test">
+    <exec workingdir="${src.dir}" program="nunit-console.exe">
+      <arg value="${src.dir}/${test.project}/bin/${configuration}/${test.project}.dll" />
+      <arg value="/xml=${src.dir}/${test.project}.Result.xml" />
+      <arg value="/process=Separate" />
+      <arg value="/domain=Single" />
+    </exec>
+  </target>
+
+  <target name="package">
+    <tstamp>
+      <formatter property="datetime.packagedate" pattern="yyyy-MM-dd-HH-mm" />
+    </tstamp>
+
+    <copy todir="${dist.dir}/${configuration}" overwrite="true" failonerror="true">
+      <fileset basedir="${src.dir}/${project::get-name()}/bin/${configuration}">
+        <exclude name=".gitignore"/>
+        <exclude name="**/.gitignore"/>
+        <exclude name="**/*.vshost.exe"/>
+        <include name="*.exe" />
+        <include name="*.dll" />
+        <include name="*.pdb" unless="${configuration=='Release'}" />
+        <include name="*.xml" unless="${configuration=='Release'}" />
+      </fileset>
+    </copy>
+  </target>
+</project>
