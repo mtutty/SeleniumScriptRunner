@@ -46,7 +46,8 @@ namespace SeleniumScriptRunner.Script {
 
         public void DoCommand(SeleniumScriptLine line, IWebDriver driver) {
             string key = line.Command.ToLower();
-            if (Commands.ContainsKey(key) == false) throw new NotSupportedException(string.Format(@"Selenium command '{0}' is not supported by this script runner", key));
+            if (Commands.ContainsKey(key) == false)
+                throw new NotSupportedException(string.Format(@"Selenium command '{0}' is not supported by this script runner", key));
             try {
                 Commands[key].Invoke(this, new object[] { line, driver });
                 if (this.log != null && isAssertion(line)) {
@@ -54,18 +55,22 @@ namespace SeleniumScriptRunner.Script {
                 }
             } catch (Exception ex) {
                 if (ex.GetType().Equals(typeof(AssertionException))) {
-                    if (FailAssertion(desc, line, ex)) throw;
+                    if (FailAssertion(desc, line, ex))
+                        throw;
                     verificationErrors.Add(ex.Message);
                 } else if (ex.GetType().Equals(typeof(NoSuchElementException))) {
-                    if (FailAssertion(desc, line, ex)) throw;
+                    if (FailAssertion(desc, line, ex))
+                        throw;
                     verificationErrors.Add(ex.Message);
-                } else if (ex.InnerException != null && 
+                } else if (ex.InnerException != null &&
                            ex.InnerException.GetType().Equals(typeof(AssertionException))) {
-                    if (FailAssertion(desc, line, ex.InnerException)) throw;
+                    if (FailAssertion(desc, line, ex.InnerException))
+                        throw;
                     verificationErrors.Add(ex.InnerException.Message);
                 } else if (ex.InnerException != null &&
                            ex.InnerException.GetType().Equals(typeof(NoSuchElementException))) {
-                    if (FailAssertion(desc, line, ex.InnerException)) throw;
+                    if (FailAssertion(desc, line, ex.InnerException))
+                        throw;
                     verificationErrors.Add(ex.InnerException.Message);
                 } else {
                     if (this.log != null) {
@@ -105,7 +110,7 @@ namespace SeleniumScriptRunner.Script {
         [SeleniumWDCommand(@"assertTitle")]
         public void checkTitle(SeleniumScriptLine line, IWebDriver driver) {
             try {
-                Assert.AreEqual(line.Target, driver.Title);
+                Assert.AreEqual(HtmlAgilityPack.HtmlEntity.DeEntitize(line.Target), driver.Title);
             } catch (Exception ex) {
                 this.runtimeException = ex;
                 throw;
@@ -127,15 +132,44 @@ namespace SeleniumScriptRunner.Script {
         [SeleniumWDCommand(@"storeTextPresent")]
         public void checkTextPresent(SeleniumScriptLine line, IWebDriver driver) {
             string textToFind = line.Target;
-            if (line.Command.StartsWith(@"store")) textToFind = expandVars(line.Target, this.scriptVars);
+            if (line.Command.StartsWith(@"store"))
+                textToFind = expandVars(line.Target, this.scriptVars);
             string xpath = string.Format(@"//*[contains(text(),'{0}')]", textToFind);
             driver.FindElement(By.XPath(xpath));
+        }
+
+        [SeleniumWDCommand(@"verifyTextNotPresent")]
+        [SeleniumWDCommand(@"assertTextNotPresent")]
+        public void checkTextNotPresent(SeleniumScriptLine line, IWebDriver driver) {
+            try {
+                string textToFind = expandVars(line.Target, this.scriptVars);
+                string xpath = string.Format(@"//*[contains(text(),'{0}')]", textToFind);
+                var tmp = driver.FindElement(By.XPath(xpath));
+                Assert.Fail(@"Text {0} was expected not present but was found in the document.", line.Target);
+            } catch (OpenQA.Selenium.NotFoundException nfe) {
+                nfe = null;
+                // Success
+                Assert.True(true);
+            }
         }
 
         [SeleniumWDCommand(@"verifyElementPresent")]
         [SeleniumWDCommand(@"assertElementPresent")]
         public void checkElementPresent(SeleniumScriptLine line, IWebDriver driver) {
             driver.FindElement(FindBy(line));
+        }
+
+        [SeleniumWDCommand(@"verifyElementNotPresent")]
+        [SeleniumWDCommand(@"assertElementNotPresent")]
+        public void checkElementNotPresent(SeleniumScriptLine line, IWebDriver driver) {
+            try {
+                var tmp = driver.FindElement(FindBy(line));
+                Assert.Fail(@"Element {0} was expected not present but was found in the document.", line.Target);
+            } catch (OpenQA.Selenium.NotFoundException nfe) {
+                nfe = null;
+                // Success
+                Assert.True(true);
+            }
         }
 
         [SeleniumWDCommand(@"click")]
@@ -163,17 +197,49 @@ namespace SeleniumScriptRunner.Script {
         public void waitForElementPresence(SeleniumScriptLine line, IWebDriver driver) {
             bool waitingForPresent = (line.Command.Contains(@"Not") == false);
             for (int second = 0; ; second++) {
-                if (second >= 60) Assert.Fail("timeout");
+                if (second >= 60)
+                    Assert.Fail("timeout");
                 try {
-                    if (IsElementPresent(driver, FindBy(line)) == waitingForPresent) return;
+                    if (IsElementPresent(driver, FindBy(line)) == waitingForPresent)
+                        return;
                 } catch (Exception) { }
                 Thread.Sleep(1000);
+            }
+        }
+
+        [SeleniumWDCommand(@"select")]
+        [SeleniumWDCommand(@"selectAndWait")]
+        public void select(SeleniumScriptLine line, IWebDriver driver) {
+            var rawElement = driver.FindElement(FindBy(line));
+            var select = new OpenQA.Selenium.Support.UI.SelectElement(rawElement);
+            if (line.Value != null) {
+                if (line.Value.StartsWith(@"label=")) {
+                    select.SelectByText(line.Value.Substring(6));
+                } else if (line.Value.StartsWith(@"value=")) {
+                    select.SelectByValue(line.Value.Substring(6));
+                } else if (line.Value.StartsWith(@"index=")) {
+                    select.SelectByIndex(int.Parse(line.Value.Substring(6)));
+                } else {
+                    select.SelectByText(line.Value);
+                }
+                if (line.Command.EndsWith(@"Wait", StringComparison.CurrentCultureIgnoreCase)) {
+                    SeleniumScriptLine temp = new SeleniumScriptLine(@"waitForElementPresent", "css=body", string.Empty);
+                    waitForElementPresence(temp, driver);
+                }
             }
         }
 
         [SeleniumWDCommand(@"storeText")]
         public void storeText(SeleniumScriptLine line, IWebDriver driver) {
             this.scriptVars[line.Value] = driver.FindElement(FindBy(line)).Text;
+        }
+
+        [SeleniumWDCommand(@"deleteCookie")]
+        public void deleteCookie(SeleniumScriptLine line, IWebDriver driver) {
+            // RMT Bug - this method fails on Sauce.  Since they're using a new browser for each test anyway, just keep going.
+            var c = driver.Manage().Cookies.GetCookieNamed(line.Target);
+            if (c != null)
+                driver.Manage().Cookies.DeleteCookie(c);
         }
         #endregion
 
@@ -186,11 +252,15 @@ namespace SeleniumScriptRunner.Script {
                     return;
                 } else if (expectedWithDiscriminant.StartsWith(@"glob:")) {
                     Assert.IsTrue(globToRegex(expectedWithDiscriminant.Substring(5)).IsMatch(actual));
+                    return;
                 } else if (expectedWithDiscriminant.StartsWith(@"regex:")) {
                     Assert.IsTrue(new Regex(expectedWithDiscriminant.Substring(6)).IsMatch(actual));
+                    return;
+                } else {
+                    expected = expectedWithDiscriminant;
                 }
             }
-            Assert.AreEqual(actual, expected);
+            Assert.AreEqual(expected, actual);
         }
         internal static Regex globToRegex(string glob) {
             return new Regex(

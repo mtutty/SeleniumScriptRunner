@@ -37,8 +37,9 @@
     <StartupObject>SeleniumScriptRunner.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Castle.Core">
-      <HintPath>packages\Castle.Core.2.5.2\lib\NET35\Castle.Core.dll</HintPath>
+    <Reference Include="Castle.Core, Version=2.5.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Castle.Core.2.5.2\lib\NET40ClientProfile\Castle.Core.dll</HintPath>
     </Reference>
     <Reference Include="CommandLine">
       <HintPath>..\..\lib\CommandLine\CommandLine.dll</HintPath>
@@ -73,6 +74,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Selenium.WebDriver.2.20.0\lib\net40\WebDriver.dll</HintPath>
     </Reference>
+    <Reference Include="WebDriver.Support">
+      <HintPath>..\packages\Selenium.Support.2.17.0\lib\net40\WebDriver.Support.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineProgram.cs" />
@@ -89,7 +93,9 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

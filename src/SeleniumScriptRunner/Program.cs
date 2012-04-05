@@ -55,7 +55,10 @@ namespace SeleniumScriptRunner {
                         RunScript(desc, script, driver, log);
                     }
                 } catch (Exception ex) {
-                    Out(@"Error running script {0}: {1}", scriptFile, ex.Message);
+                    string msg = ex.Message;
+                    if (ex.InnerException != null && !string.IsNullOrEmpty(ex.InnerException.Message))
+                        msg = ex.InnerException.Message;
+                    Out(@"Error running script {0}: {1}", scriptFile, msg);
                     continue;
                 } finally {
                     if (driver != null) driver.Quit();

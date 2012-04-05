@@ -27,7 +27,10 @@ namespace SeleniumScriptRunner.Script {
         }
 
         public static SeleniumScript LoadScript(string filename) {
-            return LoadScript(File.OpenText(filename));
+            var rdr = File.OpenText(filename);
+            var ret = LoadScript(rdr);
+            rdr.Close();
+            return ret;
         }
 
         public static SeleniumScript LoadScript(TextReader rdr) {
@@ -68,7 +71,7 @@ namespace SeleniumScriptRunner.Script {
         internal static string AttributeValueOrDefault(HtmlNode node, string attributeName, string defaultValue) {
             if (node == null) return defaultValue;
             if (node.Attributes.Contains(attributeName) == false) return defaultValue;
-            return node.Attributes[attributeName].Value;
+            return System.Net.WebUtility.HtmlDecode(node.Attributes[attributeName].Value);
         }
 
         internal static string ValueOrDefault(HtmlNode node) {
@@ -76,9 +79,8 @@ namespace SeleniumScriptRunner.Script {
         }
 
         internal static string ValueOrDefault(HtmlNode node, string defaultValue) {
-            if (node == null) return defaultValue;
-            if (!string.IsNullOrEmpty(node.InnerText)) return node.InnerText;
-            return node.InnerText;
+            if (node == null || node.InnerText == null) return defaultValue;
+            return System.Net.WebUtility.HtmlDecode(node.InnerText);
         }
 
     }
