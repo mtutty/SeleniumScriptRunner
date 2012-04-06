@@ -27,7 +27,17 @@ namespace SeleniumScriptRunner.Driver {
             ret.Add("build", version);
             ret.Add("username", userID);
             ret.Add("accessKey", accessKey);
+            ret.Add("selenium-version", GetSeleniumVersion());
             return ret;
+        }
+
+        public static string GetSeleniumVersion() {
+            System.Reflection.Assembly assy = typeof(IWebDriver).Assembly;
+            Version ver = assy.GetName().Version;
+            return string.Format(
+                @"{0}.{1}.{2}",
+                ver.Major, ver.Minor, ver.Revision
+            );
         }
 
         /// <summary>

@@ -29,6 +29,12 @@ namespace SeleniumScriptRunner {
             string scriptFile = string.Empty;
             string baseDirectory = Path.GetDirectoryName(arguments.SuiteFile);
             string suiteName = Path.GetFileNameWithoutExtension(arguments.SuiteFile);
+            
+            BeforeExecuteDelegate before = null;
+            if (arguments.DebugLogging) {
+                Out(@"Logging script lines to stdout for debugging.");
+                before = new BeforeExecuteDelegate(this.BeforeExecute);
+            }
 
             foreach (string scriptTitle in scriptList.Keys) {
                 try {
@@ -52,7 +58,7 @@ namespace SeleniumScriptRunner {
                             scriptTitle
                         );
                         driver = CreateDriver(arguments, desc, i);
-                        RunScript(desc, script, driver, log);
+                        RunScript(desc, script, driver, log, before);
                     }
                 } catch (Exception ex) {
                     string msg = ex.Message;
@@ -73,7 +79,11 @@ namespace SeleniumScriptRunner {
             }
         }
 
-        private void RunScript(TestRunDescriptor desc, SeleniumScript script, IWebDriver driver, NUnitResultAccumulator log) {
+        public void BeforeExecute(SeleniumScriptLine line, TestRunDescriptor desc) {
+            Out(@"Script Line: {0}, {1}, {2}", line.Command, line.Target, line.Value);
+        }
+
+        private void RunScript(TestRunDescriptor desc, SeleniumScript script, IWebDriver driver, NUnitResultAccumulator log, BeforeExecuteDelegate before) {
 
             log.Begin(desc.SuiteName, desc.FixtureName, desc.TestName);
             if (driver == null) {
@@ -86,7 +96,7 @@ namespace SeleniumScriptRunner {
                 if (driver as WebDriverFactory.WebDriver != null)  {
                     AddSauceCustomProperties(desc, script, driver as WebDriverFactory.WebDriver, log);
                 }
-                SeleniumWebDriverCommands runner = new SeleniumWebDriverCommands(driver, desc, log);
+                SeleniumWebDriverCommands runner = new SeleniumWebDriverCommands(driver, desc, log, before);
                 runner.RunScript(script);
             }
         }
@@ -149,6 +159,9 @@ namespace SeleniumScriptRunner {
 
         [Option(@"w", @"wait", HelpText = @"If TRUE, then wait for <Enter> before ending the program")]
         public bool WaitForExit = false;
+
+        [Option(@"d", @"debug", HelpText = @"If TRUE, then write each script line to stdout before executing it.")]
+        public bool DebugLogging = false;
 
         public override string ToString() {
             return string.Format(@"Remote URL = {0}, User ID = {1}, Token = {2}, Combinations = [{3}], Base URL = {4}, Test Suite = {5}, Output File = {6}, Wait for Exit = {7}, Build Version = {8}",

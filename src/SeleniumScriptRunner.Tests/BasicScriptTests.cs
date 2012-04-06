@@ -57,9 +57,9 @@ namespace SeleniumScriptRunner.Tests {
             Assert.AreEqual(94, target.Lines.Count);
 
             CheckScriptLine(target.Lines[0], @"open", @"/");
-            CheckScriptLine(target.Lines[1], @"verifyTitle", @"Local Movers &amp; Day Labor | HireAHelper.com");
+            CheckScriptLine(target.Lines[1], @"verifyTitle", @"Local Movers & Day Labor | HireAHelper.com");
             CheckScriptLine(target.Lines[3], @"verifyTextPresent", @"Day Laborers");
-            CheckScriptLine(target.Lines[92], @"verifyTextPresent", "Johnny &quot;B&quot; Movers");
+            CheckScriptLine(target.Lines[92], @"verifyTextPresent", "Johnny \"B\" Movers");
             CheckScriptLine(target.Lines[93], @"clickAndWait", @"link=HireAHelper.com");
 
         }

@@ -10,6 +10,9 @@ using System.Text.RegularExpressions;
 using SeleniumScriptRunner.Result;
 
 namespace SeleniumScriptRunner.Script {
+
+    public delegate void BeforeExecuteDelegate(SeleniumScriptLine line, TestRunDescriptor desc);
+
     public class SeleniumWebDriverCommands {
 
         public delegate void OnAssertion();
@@ -22,14 +25,18 @@ namespace SeleniumScriptRunner.Script {
         private StringCollection executedElements;
         private Exception runtimeException;
         private NameValueCollection scriptVars;
+        private BeforeExecuteDelegate beforeExecute = null;
 
         #region Public usage methods
         public SeleniumWebDriverCommands(IWebDriver driver, TestRunDescriptor desc) : this(driver, desc, null) { }
 
-        public SeleniumWebDriverCommands(IWebDriver driver, TestRunDescriptor desc, Result.NUnitResultAccumulator log) {
+        public SeleniumWebDriverCommands(IWebDriver driver, TestRunDescriptor desc, Result.NUnitResultAccumulator log) : this(driver, desc, log, null) { }
+
+        public SeleniumWebDriverCommands(IWebDriver driver, TestRunDescriptor desc, Result.NUnitResultAccumulator log, BeforeExecuteDelegate before) {
             this.driver = driver;
             this.desc = desc;
             this.log = log;
+            this.beforeExecute = before;
         }
 
         public void RunScript(SeleniumScript script) {
@@ -40,6 +47,8 @@ namespace SeleniumScriptRunner.Script {
             this.runtimeException = null;
             this.baseURL = script.BaseURL;
             foreach (SeleniumScriptLine line in script.Lines) {
+                if (this.beforeExecute != null)
+                    beforeExecute.Invoke(line, desc);
                 this.DoCommand(line, driver);
             }
         }
@@ -153,6 +162,12 @@ namespace SeleniumScriptRunner.Script {
             }
         }
 
+        [SeleniumWDCommand(@"verifyElementVisible")]
+        [SeleniumWDCommand(@"assertElementVisible")]
+        public void checkElementVisible(SeleniumScriptLine line, IWebDriver driver) {
+            Assert.IsTrue(driver.FindElement(FindBy(line)).Displayed);
+        }
+
         [SeleniumWDCommand(@"verifyElementPresent")]
         [SeleniumWDCommand(@"assertElementPresent")]
         public void checkElementPresent(SeleniumScriptLine line, IWebDriver driver) {
@@ -202,6 +217,28 @@ namespace SeleniumScriptRunner.Script {
                 try {
                     if (IsElementPresent(driver, FindBy(line)) == waitingForPresent)
                         return;
+                } catch (Exception) { }
+                Thread.Sleep(1000);
+            }
+        }
+
+        [SeleniumWDCommand(@"waitForText")]
+        [SeleniumWDCommand(@"waitForTextPresent")]
+        [SeleniumWDCommand(@"waitForTextNotPresent")]
+        public void waitForTextPresence(SeleniumScriptLine line, IWebDriver driver) {
+            bool waitingForPresent = (line.Command.Contains(@"Not") == false);
+            for (int second = 0; ; second++) {
+                if (second >= 60)
+                    Assert.Fail("timeout");
+                try {
+                    var rawElement = driver.FindElement(FindBy(line));
+                    if (rawElement == null) {
+                        if (!waitingForPresent)
+                            break;
+                    } else {
+                        if (waitingForPresent && !string.IsNullOrEmpty(rawElement.Text))
+                            return;
+                    }
                 } catch (Exception) { }
                 Thread.Sleep(1000);
             }
@@ -289,6 +326,8 @@ namespace SeleniumScriptRunner.Script {
                 return By.Name(line.Target.Replace(@"name=", @""));
             } else if (line.Target.StartsWith(@"link=")) {
                 return By.LinkText(line.Target.Replace(@"link=", @""));
+            } else if (line.Target.StartsWith(@"xpath=")) {
+                return By.XPath(line.Target.Replace(@"xpath=", @""));
             } else /* XPath */ {
                 return By.XPath(line.Target);
             }
