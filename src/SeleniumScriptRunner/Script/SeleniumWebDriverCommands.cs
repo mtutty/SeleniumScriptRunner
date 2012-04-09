@@ -93,7 +93,7 @@ namespace SeleniumScriptRunner.Script {
         private bool FailAssertion(TestRunDescriptor desc, SeleniumScriptLine line, Exception ex) {
             if (isAssertion(line)) {
                 if (this.log != null) {
-                    string location = string.Join(@", ", line.Command, line.Target, line.Value);
+                    string location = string.Join(@", ", line.Command, decodeString(line.Target, this.scriptVars), decodeString(line.Value, this.scriptVars));
                     this.log.AssertionFailed(desc.SuiteName, desc.FixtureName, desc.TestName, ex.Message, location);
                 }
                 return true;
@@ -108,7 +108,7 @@ namespace SeleniumScriptRunner.Script {
         [SeleniumWDCommand(@"open")]
         public void OpenUrl(SeleniumScriptLine line, IWebDriver driver) {
             try {
-                driver.Navigate().GoToUrl(this.baseURL + line.Target);
+                driver.Navigate().GoToUrl(this.baseURL + decodeString(line.Target, this.scriptVars));
             } catch (Exception ex) {
                 this.runtimeException = ex;
                 throw;
@@ -119,7 +119,7 @@ namespace SeleniumScriptRunner.Script {
         [SeleniumWDCommand(@"assertTitle")]
         public void checkTitle(SeleniumScriptLine line, IWebDriver driver) {
             try {
-                Assert.AreEqual(HtmlAgilityPack.HtmlEntity.DeEntitize(line.Target), driver.Title);
+                Assert.AreEqual(decodeString(line.Target, this.scriptVars), driver.Title);
             } catch (Exception ex) {
                 this.runtimeException = ex;
                 throw;
@@ -133,16 +133,14 @@ namespace SeleniumScriptRunner.Script {
         public void checkValueOrText(SeleniumScriptLine line, IWebDriver driver) {
             IWebElement elem = driver.FindElement(FindBy(line));
             string actual = elem.TagName.Equals(@"input") ? elem.GetAttribute(@"value") : elem.Text;
-            matchText(actual, expandVars(line.Value, this.scriptVars));
+            matchText(actual, decodeString(line.Value, this.scriptVars));
         }
 
         [SeleniumWDCommand(@"verifyTextPresent")]
         [SeleniumWDCommand(@"assertTextPresent")]
         [SeleniumWDCommand(@"storeTextPresent")]
         public void checkTextPresent(SeleniumScriptLine line, IWebDriver driver) {
-            string textToFind = line.Target;
-            if (line.Command.StartsWith(@"store"))
-                textToFind = expandVars(line.Target, this.scriptVars);
+            string textToFind = decodeString(line.Target, this.scriptVars);
             string xpath = string.Format(@"//*[contains(text(),'{0}')]", textToFind);
             driver.FindElement(By.XPath(xpath));
         }
@@ -151,7 +149,7 @@ namespace SeleniumScriptRunner.Script {
         [SeleniumWDCommand(@"assertTextNotPresent")]
         public void checkTextNotPresent(SeleniumScriptLine line, IWebDriver driver) {
             try {
-                string textToFind = expandVars(line.Target, this.scriptVars);
+                string textToFind = decodeString(line.Target, this.scriptVars);
                 string xpath = string.Format(@"//*[contains(text(),'{0}')]", textToFind);
                 var tmp = driver.FindElement(By.XPath(xpath));
                 Assert.Fail(@"Text {0} was expected not present but was found in the document.", line.Target);
@@ -204,7 +202,8 @@ namespace SeleniumScriptRunner.Script {
 
         [SeleniumWDCommand(@"type")]
         public void type(SeleniumScriptLine line, IWebDriver driver) {
-            driver.FindElement(FindBy(line)).SendKeys(line.Value);
+            var lineValue = decodeString(line.Value, this.scriptVars);
+            driver.FindElement(FindBy(line)).SendKeys(lineValue);
         }
 
         [SeleniumWDCommand(@"waitForElementPresent")]
@@ -244,20 +243,37 @@ namespace SeleniumScriptRunner.Script {
             }
         }
 
+        [SeleniumWDCommand(@"waitForElementVisible")]
+        [SeleniumWDCommand(@"waitForElementNotVisible")]
+        public void waitForElementVisibility(SeleniumScriptLine line, IWebDriver driver) {
+            bool waitingForVisible = (line.Command.Contains(@"Not") == false);
+            for (int second = 0; ; second++) {
+                if (second >= 60)
+                    Assert.Fail("timeout");
+                try {
+                    if (IsElementVisible(driver, FindBy(line)) == waitingForVisible)
+                        return;
+                } catch (Exception) { }
+                Thread.Sleep(1000);
+            }
+        }
+
+
         [SeleniumWDCommand(@"select")]
         [SeleniumWDCommand(@"selectAndWait")]
         public void select(SeleniumScriptLine line, IWebDriver driver) {
-            var rawElement = driver.FindElement(FindBy(line));
+            var rawElement = driver.FindElement(FindBy(line));  // FindBy includes the decodeString function below
+            var lineValue = decodeString(line.Value, this.scriptVars);
             var select = new OpenQA.Selenium.Support.UI.SelectElement(rawElement);
-            if (line.Value != null) {
-                if (line.Value.StartsWith(@"label=")) {
-                    select.SelectByText(line.Value.Substring(6));
-                } else if (line.Value.StartsWith(@"value=")) {
-                    select.SelectByValue(line.Value.Substring(6));
-                } else if (line.Value.StartsWith(@"index=")) {
-                    select.SelectByIndex(int.Parse(line.Value.Substring(6)));
+            if (lineValue != null) {
+                if (lineValue.StartsWith(@"label=")) {
+                    select.SelectByText(lineValue.Substring(6));
+                } else if (lineValue.StartsWith(@"value=")) {
+                    select.SelectByValue(lineValue.Substring(6));
+                } else if (lineValue.StartsWith(@"index=")) {
+                    select.SelectByIndex(int.Parse(lineValue.Substring(6)));
                 } else {
-                    select.SelectByText(line.Value);
+                    select.SelectByText(lineValue);
                 }
                 if (line.Command.EndsWith(@"Wait", StringComparison.CurrentCultureIgnoreCase)) {
                     SeleniumScriptLine temp = new SeleniumScriptLine(@"waitForElementPresent", "css=body", string.Empty);
@@ -271,10 +287,22 @@ namespace SeleniumScriptRunner.Script {
             this.scriptVars[line.Value] = driver.FindElement(FindBy(line)).Text;
         }
 
+        [SeleniumWDCommand(@"storeEval")]
+        public void storeEval(SeleniumScriptLine line, IWebDriver driver) {
+            var jsEngine = driver as OpenQA.Selenium.IJavaScriptExecutor;
+            if (jsEngine == null)
+                throw new NotSupportedException(@"The current driver does not support remote execution of Javascript");
+            var result = jsEngine.ExecuteScript(line.Target);
+            if (result == null)
+                this.scriptVars[line.Value] = null;
+            else
+                this.scriptVars[line.Value] = result.ToString();
+        }
+
         [SeleniumWDCommand(@"deleteCookie")]
         public void deleteCookie(SeleniumScriptLine line, IWebDriver driver) {
             // RMT Bug - this method fails on Sauce.  Since they're using a new browser for each test anyway, just keep going.
-            var c = driver.Manage().Cookies.GetCookieNamed(line.Target);
+            var c = driver.Manage().Cookies.GetCookieNamed(decodeString(line.Target, this.scriptVars));
             if (c != null)
                 driver.Manage().Cookies.DeleteCookie(c);
         }
@@ -305,6 +333,12 @@ namespace SeleniumScriptRunner.Script {
                 RegexOptions.IgnoreCase | RegexOptions.Singleline
             );
         }
+        internal static string decodeString(string raw, NameValueCollection vars) {
+            return htmlDecode(expandVars(raw, vars));
+        }
+        internal static string htmlDecode(string raw) {
+            return System.Net.WebUtility.HtmlDecode(raw);
+        }
         internal static string expandVars(string raw, NameValueCollection vars) {
             Regex regex = new Regex(@"\$\{(.+?)\}");
             foreach (Match m in regex.Matches(raw)) {
@@ -316,24 +350,33 @@ namespace SeleniumScriptRunner.Script {
             return line.Command.StartsWith(@"assert", StringComparison.CurrentCultureIgnoreCase);
         }
         private By FindBy(SeleniumScriptLine line) {
-            if (line.Target.StartsWith(@"css=")) {
-                return By.CssSelector(line.Target.Replace(@"css=", @""));
-            } else if (line.Target.StartsWith(@"id=")) {
-                return By.Id(line.Target.Replace(@"id=", @""));
-            } else if (line.Target.StartsWith(@"identifier=")) {
-                return By.Id(line.Target.Replace(@"identifier=", @""));
-            } else if (line.Target.StartsWith(@"name=")) {
-                return By.Name(line.Target.Replace(@"name=", @""));
-            } else if (line.Target.StartsWith(@"link=")) {
-                return By.LinkText(line.Target.Replace(@"link=", @""));
-            } else if (line.Target.StartsWith(@"xpath=")) {
-                return By.XPath(line.Target.Replace(@"xpath=", @""));
+            string lineTarget = decodeString(line.Target, this.scriptVars);
+            if (lineTarget.StartsWith(@"css=")) {
+                return By.CssSelector(lineTarget.Replace(@"css=", @""));
+            } else if (lineTarget.StartsWith(@"id=")) {
+                return By.Id(lineTarget.Replace(@"id=", @""));
+            } else if (lineTarget.StartsWith(@"identifier=")) {
+                return By.Id(lineTarget.Replace(@"identifier=", @""));
+            } else if (lineTarget.StartsWith(@"name=")) {
+                return By.Name(lineTarget.Replace(@"name=", @""));
+            } else if (lineTarget.StartsWith(@"link=")) {
+                return By.LinkText(lineTarget.Replace(@"link=", @""));
+            } else if (lineTarget.StartsWith(@"xpath=")) {
+                return By.XPath(lineTarget.Replace(@"xpath=", @""));
             } else /* XPath */ {
-                return By.XPath(line.Target);
+                return By.XPath(lineTarget);
             }
         }
+
         private bool IsElementPresent(IWebDriver driver, By finder) {
             return (driver.FindElement(finder) != null);
+        }
+
+        private bool IsElementVisible(IWebDriver driver, By finder) {
+            IWebElement elem = driver.FindElement(finder);
+            if (elem != null)
+                return elem.Displayed;
+            return false;
         }
         #endregion
 
